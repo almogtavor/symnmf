@@ -53,14 +53,15 @@ void free_carray(double** c_array, int rows) {
 static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
     PyObject* x_matrix_list;
     int n, d;
+    double** x_matrix, result;
 
     if (!PyArg_ParseTuple(args, "Oii", &x_matrix_list, &n, &d)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for sym");
         return NULL;
     }
 
-    double** x_matrix = pylist_to_carray(x_matrix_list, n, d);
-    double** result = sym(x_matrix, n, d);
+    x_matrix = pylist_to_carray(x_matrix_list, n, d);
+    result = sym(x_matrix, n, d);
 
     PyObject* py_result = carray_to_pylist(result, n, n);
 
@@ -74,14 +75,15 @@ static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
 static PyObject* ddg_wrapper(PyObject* self, PyObject* args) {
     PyObject* a_matrix_list;
     int n;
+    double** a_matrix, result;
 
     if (!PyArg_ParseTuple(args, "Oi", &a_matrix_list, &n)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for ddg");
         return NULL;
     }
 
-    double** a_matrix = pylist_to_carray(a_matrix_list, n, n);
-    double** result = ddg(a_matrix, n);
+    a_matrix = pylist_to_carray(a_matrix_list, n, n);
+    result = ddg(a_matrix, n);
 
     PyObject* py_result = carray_to_pylist(result, n, n);
 
@@ -96,16 +98,17 @@ static PyObject* norm_wrapper(PyObject* self, PyObject* args) {
     PyObject* a_matrix_list;
     PyObject* d_matrix_list;
     int n;
+    double** a_matrix, d_matrix, result;
 
     if (!PyArg_ParseTuple(args, "OOi", &a_matrix_list, &d_matrix_list, &n)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for norm");
         return NULL;
     }
 
-    double** a_matrix = pylist_to_carray(a_matrix_list, n, n);
-    double** d_matrix = pylist_to_carray(d_matrix_list, n, n);
+    a_matrix = pylist_to_carray(a_matrix_list, n, n);
+    d_matrix = pylist_to_carray(d_matrix_list, n, n);
 
-    double** result = norm(a_matrix, d_matrix, n);
+    result = norm(a_matrix, d_matrix, n);
 
     PyObject* py_result = carray_to_pylist(result, n, n);
 
@@ -120,16 +123,17 @@ static PyObject* norm_wrapper(PyObject* self, PyObject* args) {
 static PyObject* symnmf_wrapper(PyObject* self, PyObject* args) {
     PyObject *w_matrix_list, *h_matrix_list;
     int n, k;
+    double** w_matrix, h_matrix, result;
 
     if (!PyArg_ParseTuple(args, "OOii", &w_matrix_list, &h_matrix_list, &n, &k)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for symnmf");
         return NULL;
     }
 
-    double** w_matrix = pylist_to_carray(w_matrix_list, n, n);
-    double** h_matrix = pylist_to_carray(h_matrix_list, n, k);
+    w_matrix = pylist_to_carray(w_matrix_list, n, n);
+    h_matrix = pylist_to_carray(h_matrix_list, n, k);
 
-    double** result = symnmf(w_matrix, h_matrix, n, k);
+    result = symnmf(w_matrix, h_matrix, n, k);
 
     PyObject* py_result = carray_to_pylist(result, n, k);
 

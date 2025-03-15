@@ -39,9 +39,10 @@ double** sym(double** x_matrix, int n, int d) {
 double** ddg(double** a_matrix, int n) {
     double** d_matrix = malloc(n * sizeof(double*));
     int i, j;
+    double sum;
     for (i = 0; i < n; i++) {
         d_matrix[i] = calloc(n, sizeof(double));
-        double sum = 0.0;
+        sum = 0.0;
         for (j = 0; j < n; j++) {
             sum += a_matrix[i][j];
         }
@@ -130,9 +131,10 @@ int has_converged(double** h_matrix, double** new_h, int n, int k) {
 
 /* 1.5 - Hard Clustering Solution */
 int* derive_clustering(double** h_matrix, int n, int k) {
-    int* clusters = (int*) malloc(n * sizeof(int));
+    int* clusters;
     int i, j;
 
+    clusters = (int*) malloc(n * sizeof(int));
     for (i = 0; i < n; i++) {
         double max_value = h_matrix[i][0];
         int max_index = 0;
@@ -159,6 +161,7 @@ void print_clusters(int* clusters, int n) {
 /* SymNMF Main Function */
 double** symnmf(double** w_matrix, double** h_matrix, int n, int k) {
     double** new_h;
+    int* clusters;
     int iter, i, j;
 
     for (iter = 0; iter < MAX_ITER; iter++) {
@@ -175,7 +178,7 @@ double** symnmf(double** w_matrix, double** h_matrix, int n, int k) {
             }
         }
     }
-    int* clusters = derive_clustering(h_matrix, n, k);
+    clusters = derive_clustering(h_matrix, n, k);
 
     printf("Clustering Results:\n");
     print_clusters(clusters, n);
