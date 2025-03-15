@@ -14,22 +14,22 @@ def main():
     file_name = sys.argv[3]
 
     try:
-        X = np.loadtxt(file_name)
+        x_matrix = np.loadtxt(file_name)
     except:
         print("An Error Has Occurred")
         return
 
     if goal == "sym":
-        result = symnmf.sym(X.tolist())
+        result = symnmf.sym(x_matrix.tolist())
     elif goal == "ddg":
-        result = symnmf.ddg(X.tolist())
+        result = symnmf.ddg(x_matrix.tolist())
     elif goal == "norm":
-        result = symnmf.norm(X.tolist())
+        result = symnmf.norm(x_matrix.tolist())
     elif goal == "symnmf":
-        # Initialize H for symnmf
-        m = np.mean(X)
-        H = np.random.uniform(0, 2 * np.sqrt(m / k), size=(X.shape[0], k))
-        result = symnmf.symnmf(X.tolist(), H.tolist(), k)
+        # Initialize h_matrix (H) for symnmf
+        m = np.mean(x_matrix)
+        h_matrix = np.random.uniform(0, 2 * np.sqrt(m / k), size=(x_matrix.shape[0], k))
+        result = symnmf.symnmf(x_matrix.tolist(), h_matrix.tolist(), k)
     else:
         print("An Error Has Occurred")
         return
