@@ -10,14 +10,16 @@ def main():
             print("An Error Has Occurred")
             return
 
-        k = int(sys.argv[1])
+        clusters_k = int(sys.argv[1])
         goal = sys.argv[2]
         file_name = sys.argv[3]
 
         if file_name[-4:] != ".txt":
             print("An Error Has Occurred")
             return
-        x_matrix = np.loadtxt(file_name)
+        x_matrix = np.genfromtxt(file_name, delimiter=',')
+        n = x_matrix.shape[0]
+        d = x_matrix.shape[1]
 
         if goal == "sym":
             result = symnmf.sym(x_matrix.tolist())
@@ -26,11 +28,14 @@ def main():
         elif goal == "norm":
             result = symnmf.norm(x_matrix.tolist())
         elif goal == "symnmf":
-            # Initialize h_matrix (H) for symnmf
-            m = np.mean(x_matrix)
-            h_matrix = np.random.uniform(0, 2 * np.sqrt(m / k), size=(x_matrix.shape[0], k))
-            w_matrix = symnmf.norm(x_matrix.tolist())
-            result = symnmf.symnmf(w_matrix, h_matrix.tolist(), k)
+            # Initialize h_matrix (H), and get w_matrx
+            a_matrix = symnmf.sym(x_matrix.tolist(), n, d)
+            d_matrix = symnmf.ddg(a_matrix, n)
+            w_matrix = symnmf.norm(a_matrix, d_matrix, n)
+            m = np.mean(w_matrix)
+            h_matrix = np.random.uniform(0, 2 * np.sqrt(m / clusters_k),
+                                         size=(x_matrix.shape[0], clusters_k))
+            result = symnmf.symnmf(w_matrix, h_matrix.tolist(), n, clusters_k)
         else:
             print("An Error Has Occurred")
             return

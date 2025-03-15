@@ -153,9 +153,17 @@ int* derive_clustering(double** h_matrix, int n, int k) {
 void print_clusters(int* clusters, int n) {
     int i;
     for (i = 0; i < n; i++) {
-        /* Output cluster numbers starting from 1 */
         printf("%d\n", clusters[i] + 1);
     }
+}
+
+/* Free a matrix */
+void free_matrix(double** matrix, int n) {
+    int i;
+    for (i = 0; i < n; i++) {
+        free(matrix[i]);
+    }
+    free(matrix);
 }
 
 /* SymNMF Main Function */
@@ -168,6 +176,7 @@ double** symnmf(double** w_matrix, double** h_matrix, int n, int k) {
         new_h = update_H(w_matrix, h_matrix, n, k);
 
         if (has_converged(h_matrix, new_h, n, k)) {
+            free_matrix(new_h, n); // Free new_h since it's unused
             break;
         }
 
@@ -177,12 +186,15 @@ double** symnmf(double** w_matrix, double** h_matrix, int n, int k) {
                 h_matrix[i][j] = new_h[i][j];
             }
         }
+
+        free_matrix(new_h, n); // Free the old `new_h` after copying its content
     }
-    clusters = derive_clustering(h_matrix, n, k);
 
-    printf("Clustering Results:\n");
-    print_clusters(clusters, n);
+//    clusters = derive_clustering(h_matrix, n, k);
 
-    free(clusters);
+//    printf("Clustering Results:\n");
+//    print_clusters(clusters, n);
+
+//    free(clusters);
     return h_matrix;
 }

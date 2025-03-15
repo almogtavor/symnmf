@@ -149,7 +149,6 @@ static PyObject* symnmf_wrapper(PyObject* self, PyObject* args) {
 
     free_carray(w_matrix, n);
     free_carray(h_matrix, n);
-    free_carray(result, n);
 
     return py_result;
 }

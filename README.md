@@ -19,3 +19,13 @@ python3 symnmf.py 2 symnmf input_1.txt
 # Analysis with Silhouette Scores:
 python3 analysis.py 5 input_k5_d7.txt
 ```
+
+
+## Ansi Check
+
+For ansi check add:
+`
+    extra_compile_args=['-ansi', '-Wall', '-Wextra', '-Werror', '-pedantic-errors']
+`
+
+To `setup.py`.
