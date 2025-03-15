@@ -128,6 +128,34 @@ int has_converged(double** h_matrix, double** new_h, int n, int k) {
     return sum_squared_diff < EPSILON;
 }
 
+/* 1.5 - Hard Clustering Solution */
+int* derive_clustering(double** h_matrix, int n, int k) {
+    int* clusters = (int*) malloc(n * sizeof(int));
+    int i, j;
+
+    for (i = 0; i < n; i++) {
+        double max_value = h_matrix[i][0];
+        int max_index = 0;
+        for (j = 1; j < k; j++) {
+            if (h_matrix[i][j] > max_value) {
+                max_value = h_matrix[i][j];
+                max_index = j;
+            }
+        }
+        clusters[i] = max_index;
+    }
+    return clusters;
+}
+
+/* Display clustering results */
+void print_clusters(int* clusters, int n) {
+    int i;
+    for (i = 0; i < n; i++) {
+        /* Output cluster numbers starting from 1 */
+        printf("%d\n", clusters[i] + 1);
+    }
+}
+
 /* SymNMF Main Function */
 double** symnmf(double** w_matrix, double** h_matrix, int n, int k) {
     double** new_h;
@@ -147,6 +175,11 @@ double** symnmf(double** w_matrix, double** h_matrix, int n, int k) {
             }
         }
     }
+    int* clusters = derive_clustering(h_matrix, n, k);
 
+    printf("Clustering Results:\n");
+    print_clusters(clusters, n);
+
+    free(clusters);
     return h_matrix;
 }
