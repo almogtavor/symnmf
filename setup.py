@@ -1,16 +1,17 @@
 from setuptools import Extension, setup
 
 module = Extension(
-    "mykmeanssp",
+    "symnmf",
     sources=[
-        'kmeansmodule.c',
-        'kmeans.c'
-    ]
+        'symnmfmodule.c',
+        'symnmf.c'
+    ],
+    extra_compile_args=['-ansi', '-Wall', '-Wextra', '-Werror', '-pedantic-errors']
 )
 
 setup(
-    name='mykmeanssp',
+    name='symnmf',
     version='1.0',
-    description='Python wrapper for K-means algorithm',
+    description='Python wrapper for Symmetric NMF algorithm',
     ext_modules=[module]
 )
