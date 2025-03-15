@@ -9,8 +9,8 @@
 
 /* Utility function: Convert Python list to C array */
 double** pylist_to_carray(PyObject* py_list, int rows, int cols) {
-    double** c_array = (double**) malloc(rows * sizeof(double*));
     int i, j;
+    double** c_array = (double**) malloc(rows * sizeof(double*));
 
     for (i = 0; i < rows; i++) {
         PyObject* row = PyList_GetItem(py_list, i);
@@ -26,8 +26,8 @@ double** pylist_to_carray(PyObject* py_list, int rows, int cols) {
 
 /* Utility function: Convert C array to Python list */
 PyObject* carray_to_pylist(double** c_array, int rows, int cols) {
-    PyObject* py_list = PyList_New(rows);
     int i, j;
+    PyObject* py_list = PyList_New(rows);
 
     for (i = 0; i < rows; i++) {
         PyObject* row = PyList_New(cols);
@@ -52,8 +52,10 @@ void free_carray(double** c_array, int rows) {
 /* Sym Wrapper */
 static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
     PyObject* x_matrix_list;
+    double** x_matrix;
+    double** result;
+    PyObject* py_result;
     int n, d;
-    double** x_matrix, result;
 
     if (!PyArg_ParseTuple(args, "Oii", &x_matrix_list, &n, &d)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for sym");
@@ -63,7 +65,7 @@ static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
     x_matrix = pylist_to_carray(x_matrix_list, n, d);
     result = sym(x_matrix, n, d);
 
-    PyObject* py_result = carray_to_pylist(result, n, n);
+    py_result = carray_to_pylist(result, n, n);
 
     free_carray(x_matrix, n);
     free_carray(result, n);
@@ -74,8 +76,10 @@ static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
 /* DDG Wrapper */
 static PyObject* ddg_wrapper(PyObject* self, PyObject* args) {
     PyObject* a_matrix_list;
+    double** a_matrix;
+    double** result;
+    PyObject* py_result;
     int n;
-    double** a_matrix, result;
 
     if (!PyArg_ParseTuple(args, "Oi", &a_matrix_list, &n)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for ddg");
@@ -85,7 +89,7 @@ static PyObject* ddg_wrapper(PyObject* self, PyObject* args) {
     a_matrix = pylist_to_carray(a_matrix_list, n, n);
     result = ddg(a_matrix, n);
 
-    PyObject* py_result = carray_to_pylist(result, n, n);
+    py_result = carray_to_pylist(result, n, n);
 
     free_carray(a_matrix, n);
     free_carray(result, n);
@@ -97,8 +101,11 @@ static PyObject* ddg_wrapper(PyObject* self, PyObject* args) {
 static PyObject* norm_wrapper(PyObject* self, PyObject* args) {
     PyObject* a_matrix_list;
     PyObject* d_matrix_list;
+    double** a_matrix;
+    double** d_matrix;
+    double** result;
+    PyObject* py_result;
     int n;
-    double** a_matrix, d_matrix, result;
 
     if (!PyArg_ParseTuple(args, "OOi", &a_matrix_list, &d_matrix_list, &n)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for norm");
@@ -110,7 +117,7 @@ static PyObject* norm_wrapper(PyObject* self, PyObject* args) {
 
     result = norm(a_matrix, d_matrix, n);
 
-    PyObject* py_result = carray_to_pylist(result, n, n);
+    py_result = carray_to_pylist(result, n, n);
 
     free_carray(a_matrix, n);
     free_carray(d_matrix, n);
@@ -122,8 +129,11 @@ static PyObject* norm_wrapper(PyObject* self, PyObject* args) {
 /* SymNMF Wrapper */
 static PyObject* symnmf_wrapper(PyObject* self, PyObject* args) {
     PyObject *w_matrix_list, *h_matrix_list;
+    double** w_matrix;
+    double** h_matrix;
+    double** result;
+    PyObject* py_result;
     int n, k;
-    double** w_matrix, h_matrix, result;
 
     if (!PyArg_ParseTuple(args, "OOii", &w_matrix_list, &h_matrix_list, &n, &k)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for symnmf");
@@ -135,7 +145,7 @@ static PyObject* symnmf_wrapper(PyObject* self, PyObject* args) {
 
     result = symnmf(w_matrix, h_matrix, n, k);
 
-    PyObject* py_result = carray_to_pylist(result, n, k);
+    py_result = carray_to_pylist(result, n, k);
 
     free_carray(w_matrix, n);
     free_carray(h_matrix, n);
@@ -159,7 +169,8 @@ static struct PyModuleDef symnmfmodule = {
     "symnmf",
     "Python interface for the SymNMF algorithm",
     -1,
-    SymNMFMethods
+    SymNMFMethods,
+    NULL  // Fixed the 'missing initializer' error
 };
 
 /* Module initialization function */
