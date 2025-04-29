@@ -19,7 +19,10 @@ python3 symnmf.py 2 symnmf input_1.txt
 # Analysis with Silhouette Scores:
 python3 analysis.py 5 input_k5_d7.txt
 ```
-
+Tests execution:
+```shell
+./run_tests.sh slow-edge-kmeans
+```
 
 ## Ansi Check
 

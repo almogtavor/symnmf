@@ -7,7 +7,7 @@
 #define DEF_EPSILON 0.001
 #define DEF_ITERATION 300
 
-/* Utility function: Convert Python list to C array */
+/* Convert Python list of lists to C array */
 double** pylist_to_carray(PyObject* py_list, int rows, int cols) {
     int i, j;
     double** c_array = (double**) malloc(rows * sizeof(double*));
@@ -15,20 +15,17 @@ double** pylist_to_carray(PyObject* py_list, int rows, int cols) {
     for (i = 0; i < rows; i++) {
         PyObject* row = PyList_GetItem(py_list, i);
         c_array[i] = (double*) malloc(cols * sizeof(double));
-
         for (j = 0; j < cols; j++) {
             c_array[i][j] = PyFloat_AsDouble(PyList_GetItem(row, j));
         }
     }
-
     return c_array;
 }
 
-/* Utility function: Convert C array to Python list */
+/* Convert C array to Python list of lists */
 PyObject* carray_to_pylist(double** c_array, int rows, int cols) {
     int i, j;
     PyObject* py_list = PyList_New(rows);
-
     for (i = 0; i < rows; i++) {
         PyObject* row = PyList_New(cols);
         for (j = 0; j < cols; j++) {
@@ -36,11 +33,10 @@ PyObject* carray_to_pylist(double** c_array, int rows, int cols) {
         }
         PyList_SetItem(py_list, i, row);
     }
-
     return py_list;
 }
 
-/* Utility function: Free allocated C array */
+/* Free a C array */
 void free_carray(double** c_array, int rows) {
     int i;
     for (i = 0; i < rows; i++) {
@@ -49,7 +45,7 @@ void free_carray(double** c_array, int rows) {
     free(c_array);
 }
 
-/* Sym Wrapper */
+/* sym(X) */
 static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
     PyObject* x_matrix_list;
     double** x_matrix;
@@ -69,8 +65,8 @@ static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
     }
 
     d = PyList_Size(PyList_GetItem(x_matrix_list, 0));
-    x_matrix = pylist_to_carray(x_matrix_list, n, d);
 
+    x_matrix = pylist_to_carray(x_matrix_list, n, d);
     result = sym(x_matrix, n, d);
     py_result = carray_to_pylist(result, n, n);
 
@@ -79,62 +75,68 @@ static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-
-/* DDG Wrapper */
+/* ddg(X) */
 static PyObject* ddg_wrapper(PyObject* self, PyObject* args) {
-    PyObject* a_matrix_list;
+    PyObject* x_matrix_list;
     double** a_matrix;
+    double** x_matrix;
     double** result;
     PyObject* py_result;
     int n;
+    int d;
 
-    if (!PyArg_ParseTuple(args, "O", &a_matrix_list)) {
+    if (!PyArg_ParseTuple(args, "O", &x_matrix_list)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for ddg");
         return NULL;
     }
 
-    n = PyList_Size(a_matrix_list);
-    a_matrix = pylist_to_carray(a_matrix_list, n, n);
-    result = ddg(a_matrix, n);
+    n = PyList_Size(x_matrix_list);
+    d = PyList_Size(PyList_GetItem(x_matrix_list, 0));
 
+    x_matrix = pylist_to_carray(x_matrix_list, n, d);
+    a_matrix = sym(x_matrix, n, d);
+    result = ddg(a_matrix, n);
     py_result = carray_to_pylist(result, n, n);
 
+    free_carray(x_matrix, n);
     free_carray(a_matrix, n);
     free_carray(result, n);
-
     return py_result;
 }
 
-/* Norm Wrapper */
+/* norm(X) */
 static PyObject* norm_wrapper(PyObject* self, PyObject* args) {
-    PyObject* a_matrix_list;
-    PyObject* d_matrix_list;
+    PyObject* x_matrix_list;
+    double** x_matrix;
     double** a_matrix;
     double** d_matrix;
     double** result;
     PyObject* py_result;
     int n;
+    int d;
 
-    if (!PyArg_ParseTuple(args, "OO", &a_matrix_list, &d_matrix_list)) {
+    if (!PyArg_ParseTuple(args, "O", &x_matrix_list)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for norm");
         return NULL;
     }
 
-    n = PyList_Size(a_matrix_list);
-    a_matrix = pylist_to_carray(a_matrix_list, n, n);
-    d_matrix = pylist_to_carray(d_matrix_list, n, n);
+    n = PyList_Size(x_matrix_list);
+    d = PyList_Size(PyList_GetItem(x_matrix_list, 0));
 
+    x_matrix = pylist_to_carray(x_matrix_list, n, d);
+    a_matrix = sym(x_matrix, n, d);
+    d_matrix = ddg(a_matrix, n);
     result = norm(a_matrix, d_matrix, n);
     py_result = carray_to_pylist(result, n, n);
 
+    free_carray(x_matrix, n);
     free_carray(a_matrix, n);
     free_carray(d_matrix, n);
     free_carray(result, n);
-
     return py_result;
 }
 
-/* SymNMF Wrapper */
+/* symnmf(W, H, k) */
 static PyObject* symnmf_wrapper(PyObject* self, PyObject* args) {
     PyObject *w_matrix_list, *h_matrix_list;
     double** w_matrix;

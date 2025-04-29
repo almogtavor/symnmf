@@ -24,17 +24,12 @@ def main():
         if goal == "sym":
             result = symnmf.sym(x_matrix.tolist())
         elif goal == "ddg":
-            a_matrix = symnmf.sym(x_matrix.tolist())
-            result = symnmf.ddg(a_matrix)
+            result = symnmf.ddg(x_matrix.tolist())
         elif goal == "norm":
-            a_matrix = symnmf.sym(x_matrix.tolist())
-            d_matrix = symnmf.ddg(a_matrix)
-            result = symnmf.norm(a_matrix, d_matrix)
+            result = symnmf.norm(x_matrix.tolist())
         elif goal == "symnmf":
             # Initialize h_matrix (H), and get w_matrx
-            a_matrix = symnmf.sym(x_matrix.tolist())
-            d_matrix = symnmf.ddg(a_matrix)
-            w_matrix = symnmf.norm(a_matrix, d_matrix)
+            w_matrix = symnmf.norm(x_matrix.tolist())
             m = np.mean(w_matrix)
             h_matrix = np.random.uniform(0, 2 * np.sqrt(m / clusters_k),
                                          size=(x_matrix.shape[0], clusters_k))
