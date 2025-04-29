@@ -181,6 +181,8 @@ if [[ "${SPEED}" == *"kmeans"* ]]; then
 fi
 symnmfSuite
 
+echo -e "\n========== Finished Running All Tests ==========\n"
+
 if [ $failures -eq 0 ]; then
 	echo -e "\n${GREEN}=== ${total_tests}/${total_tests} tests passed successfully ===${RESET}\n"
 else

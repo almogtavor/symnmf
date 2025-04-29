@@ -38,13 +38,17 @@ def get_row_count(input_file):
     return row_counter
 
 
-def create_data_points(filename):
+def create_data_points(file_name):
     points = []
-    with open(filename, 'r', encoding='utf-8') as file:
+    with open(file_name, 'r', encoding='utf-8') as file:
         for line in file:
             points.append(line.strip().split(','))
+    if not points:
+        print("An Error Has Occurred")
+        sys.exit(1)
     points = [[float(value) for value in row] for row in points]
     return points
+
 
 
 # The function converts a list of nk elements to an array of arrays of size nk
@@ -53,8 +57,8 @@ def list_to_mat(lst, n, k):
 
 
 # The function performs the symnmf algorithm on k centroids, and returns silhouette score
-def calc_symnmf(k, filename):
-    points = create_data_points(filename)
+def calc_symnmf(k, file_name):
+    points = create_data_points(file_name)
     np.random.seed(1234)
     W = symnmf.norm(points)
     n = int(math.sqrt(len(W)))
@@ -66,12 +70,12 @@ def calc_symnmf(k, filename):
     H = list_to_mat(H, n, k)
     H = np.array(H)
     # Compute cluster for each point by the min distance from the first k points
-    clustList = [np.argmax(row) for row in H]
-    return silhouette_score(points, clustList)
+    clusters = [np.argmax(row) for row in H]
+    return silhouette_score(points, clusters)
 
 
-def run_kmeans_silhouette(k, filename):
-    points = create_data_points(filename)
+def run_kmeans_silhouette(k, file_name):
+    points = create_data_points(file_name)
     dim = len(points[0])
     centroids = kmeans(k, MAX_ITER, dim, points)
     # Assign points to closest centroid
@@ -101,11 +105,11 @@ if __name__ == "__main__":
         print("Invalid number of clusters!")
         sys.exit(1)
 
-    filename = sys.argv[2]
+    input_file_name = sys.argv[2]
 
     try:
-        nmf_score = calc_symnmf(k, filename)
-        kmeans_score = run_kmeans_silhouette(k, filename)
+        nmf_score = calc_symnmf(k, input_file_name)
+        kmeans_score = run_kmeans_silhouette(k, input_file_name)
     except Exception:
         print("An Error Has Occurred")
         sys.exit(1)
