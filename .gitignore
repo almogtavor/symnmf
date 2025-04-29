@@ -1,2 +1,9 @@
 .venv
 .idea
+tests
+kmeans_tests
+build
+*.exe
+*.o
+*.so
+symnmf
