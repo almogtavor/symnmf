@@ -57,21 +57,28 @@ static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
     PyObject* py_result;
     int n, d;
 
-    if (!PyArg_ParseTuple(args, "Oii", &x_matrix_list, &n, &d)) {
+    if (!PyArg_ParseTuple(args, "O", &x_matrix_list)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for sym");
         return NULL;
     }
 
-    x_matrix = pylist_to_carray(x_matrix_list, n, d);
-    result = sym(x_matrix, n, d);
+    n = PyList_Size(x_matrix_list);
+    if (n == 0) {
+        PyErr_SetString(PyExc_ValueError, "Empty matrix");
+        return NULL;
+    }
 
+    d = PyList_Size(PyList_GetItem(x_matrix_list, 0));
+    x_matrix = pylist_to_carray(x_matrix_list, n, d);
+
+    result = sym(x_matrix, n, d);
     py_result = carray_to_pylist(result, n, n);
 
     free_carray(x_matrix, n);
     free_carray(result, n);
-
     return py_result;
 }
+
 
 /* DDG Wrapper */
 static PyObject* ddg_wrapper(PyObject* self, PyObject* args) {
@@ -81,11 +88,12 @@ static PyObject* ddg_wrapper(PyObject* self, PyObject* args) {
     PyObject* py_result;
     int n;
 
-    if (!PyArg_ParseTuple(args, "Oi", &a_matrix_list, &n)) {
+    if (!PyArg_ParseTuple(args, "O", &a_matrix_list)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for ddg");
         return NULL;
     }
 
+    n = PyList_Size(a_matrix_list);
     a_matrix = pylist_to_carray(a_matrix_list, n, n);
     result = ddg(a_matrix, n);
 
@@ -107,16 +115,16 @@ static PyObject* norm_wrapper(PyObject* self, PyObject* args) {
     PyObject* py_result;
     int n;
 
-    if (!PyArg_ParseTuple(args, "OOi", &a_matrix_list, &d_matrix_list, &n)) {
+    if (!PyArg_ParseTuple(args, "OO", &a_matrix_list, &d_matrix_list)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for norm");
         return NULL;
     }
 
+    n = PyList_Size(a_matrix_list);
     a_matrix = pylist_to_carray(a_matrix_list, n, n);
     d_matrix = pylist_to_carray(d_matrix_list, n, n);
 
     result = norm(a_matrix, d_matrix, n);
-
     py_result = carray_to_pylist(result, n, n);
 
     free_carray(a_matrix, n);
@@ -135,21 +143,20 @@ static PyObject* symnmf_wrapper(PyObject* self, PyObject* args) {
     PyObject* py_result;
     int n, k;
 
-    if (!PyArg_ParseTuple(args, "OOii", &w_matrix_list, &h_matrix_list, &n, &k)) {
+    if (!PyArg_ParseTuple(args, "OOi", &w_matrix_list, &h_matrix_list, &k)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for symnmf");
         return NULL;
     }
 
+    n = PyList_Size(w_matrix_list);
     w_matrix = pylist_to_carray(w_matrix_list, n, n);
     h_matrix = pylist_to_carray(h_matrix_list, n, k);
 
     result = symnmf(w_matrix, h_matrix, n, k);
-
     py_result = carray_to_pylist(result, n, k);
 
     free_carray(w_matrix, n);
     free_carray(h_matrix, n);
-
     return py_result;
 }
 
@@ -169,7 +176,7 @@ static struct PyModuleDef symnmfmodule = {
     "Python interface for the SymNMF algorithm",
     -1,
     SymNMFMethods,
-    NULL  // Fixed the 'missing initializer' error
+    NULL  /* Prevents the 'missing initializer' error */
 };
 
 /* Module initialization function */
