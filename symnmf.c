@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #define EPSILON 1e-4
 #define MAX_ITER 300
@@ -8,6 +9,7 @@
 
 #define MAX_LINE 1024
 #define ERROR_MSG "An Error Has Occurred\n"
+#define MAX_LINE_LENGTH 10000
 
 double** sym(double** x_matrix, int n, int d);
 double** ddg(double** a_matrix, int n);
@@ -33,22 +35,11 @@ double** sym(double** x_matrix, int n, int d) {
         a_matrix[i] = calloc(n, sizeof(double));
         for (j = 0; j < n; j++) {
             if (i != j) {
-                double bla = -calc_distance(x_matrix[i], x_matrix[j], d);
-                double ex = exp(-calc_distance(x_matrix[i], x_matrix[j], d) / 2.0);
-                printf("before exp: %f \n", bla);
-                printf("exp: %f \n", ex);
                 a_matrix[i][j] = exp(-calc_distance(x_matrix[i], x_matrix[j], d) / 2.0);
             } else {
                 a_matrix[i][j] = 0.0;
             }
         }
-    }
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < d; j++) {
-            printf("%.4f", a_matrix[i][j]);
-            if (j < d - 1) printf(",");
-        }
-        printf("\n");
     }
     return a_matrix;
 }
@@ -217,20 +208,6 @@ double** symnmf(double** w_matrix, double** h_matrix, int n, int k) {
     return h_matrix;
 }
 
-
-
-
-
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include "symnmf.h"
-
-#define MAX_LINE 1024
-#define ERROR_MSG "An Error Has Occurred\n"
-
 /* Function to read data points from file */
 double** read_data(const char* file_name, int* n, int* d) {
     FILE* file;
@@ -293,68 +270,145 @@ double** read_data(const char* file_name, int* n, int* d) {
     return data;
 }
 
-/* Main Function for Handling Arguments and Goals */
+/* Helper to validate if the file contains only allowed characters */
+int validate_file_format(FILE *file) {
+    int c;
+    while ((c = fgetc(file)) != EOF) {
+        if ((c < '0' || c > '9') &&
+            c != '.' && c != ',' &&
+            c != '\n' && c != '\r' &&
+            c != '-') {
+            return 0;
+            }
+    }
+    return 1;
+}
+
+int count_dimensions(const char *line) {
+    int count = 1; /* at least one coordinate */
+    const char *p = line;
+    while (*p) {
+        if (*p == ',') {
+            count++;
+        }
+        p++;
+    }
+    return count;
+}
+
 int main(int argc, char* argv[]) {
-    int i, j, n, d;
-    double** data;
-    double** result;
-    double** a_matrix;
-    double** d_matrix;
+    FILE *file;
+    char line[MAX_LINE_LENGTH];
+    double **data = NULL, **a_matrix = NULL, **d_matrix = NULL, **result = NULL;
+    int i, j, n = 0, d = 0;
+    char *filename, *goal;
 
     if (argc != 3) {
         printf(ERROR_MSG);
         return 1;
     }
 
-    data = read_data(argv[2], &n, &d);
+    goal = argv[1];
+    filename = argv[2];
 
-    if (strcmp(argv[1], "sym") == 0) {
-        result = sym(data, n, d);
-
-    } else if (strcmp(argv[1], "ddg") == 0) {
-        a_matrix = sym(data, n, d);
-        result = ddg(a_matrix, n);
-
-        /* Free a_matrix since it's only needed here */
-        for (i = 0; i < n; i++) {
-            free(a_matrix[i]);
-        }
-        free(a_matrix);
-
-    } else if (strcmp(argv[1], "norm") == 0) {
-        a_matrix = sym(data, n, d);
-        d_matrix = ddg(a_matrix, n);
-        result = norm(a_matrix, d_matrix, n);
-
-        /* Free a_matrix and d_matrix since they're only needed here */
-        for (i = 0; i < n; i++) {
-            free(a_matrix[i]);
-            free(d_matrix[i]);
-        }
-        free(a_matrix);
-        free(d_matrix);
-
-    } else {
+    file = fopen(filename, "r");
+    if (file == NULL) {
         printf(ERROR_MSG);
         return 1;
     }
 
-    /* Print results */
+    /* Validate file format */
+    if (!validate_file_format(file)) {
+        fclose(file);
+        printf(ERROR_MSG);
+        return 1;
+    }
+
+    rewind(file);
+
+    /* Count lines (vectors) */
+    while (fgets(line, MAX_LINE_LENGTH, file)) {
+        if (strlen(line) > 1) {
+            n++;
+        }
+    }
+
+    if (n == 0) {
+        fclose(file);
+        printf(ERROR_MSG);
+        return 1;
+    }
+
+    rewind(file);
+    fgets(line, MAX_LINE_LENGTH, file);
+    d = count_dimensions(line);
+
+    data = (double **)malloc(n * sizeof(double *));
+    if (data == NULL) {
+        fclose(file);
+        printf(ERROR_MSG);
+        return 1;
+    }
+
+    rewind(file);
     for (i = 0; i < n; i++) {
+        char *token;
+        if (!fgets(line, MAX_LINE_LENGTH, file)) {
+            printf(ERROR_MSG);
+            return 1;
+        }
+
+        data[i] = (double *)malloc(d * sizeof(double));
+        if (data[i] == NULL) {
+            printf(ERROR_MSG);
+            return 1;
+        }
+
+        token = strtok(line, ",\n");
         for (j = 0; j < d; j++) {
+            if (token == NULL) {
+                printf(ERROR_MSG);
+                return 1;
+            }
+            data[i][j] = atof(token);
+            token = strtok(NULL, ",\n");
+        }
+    }
+
+    fclose(file);
+
+    if (strcmp(goal, "sym") == 0) {
+        result = sym(data, n, d);
+
+    } else if (strcmp(goal, "ddg") == 0) {
+        a_matrix = sym(data, n, d);
+        result = ddg(a_matrix, n);
+        /* Free a_matrix since it's only needed here */
+        free_matrix(a_matrix, n);
+    } else if (strcmp(goal, "norm") == 0) {
+        a_matrix = sym(data, n, d);
+        d_matrix = ddg(a_matrix, n);
+        result = norm(a_matrix, d_matrix, n);
+        free_matrix(a_matrix, n);
+        free_matrix(d_matrix, n);
+
+    } else {
+        printf(ERROR_MSG);
+        free_matrix(data, n);
+        return 1;
+    }
+
+    /* Print result matrix */
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
             printf("%.4f", result[i][j]);
-            if (j < d - 1) printf(",");
+            if (j < n - 1) printf(",");
         }
         printf("\n");
     }
 
-    /* Free allocated memory */
-    for (i = 0; i < n; i++) {
-        free(data[i]);
-        free(result[i]);
-    }
-    free(data);
-    free(result);
+    free_matrix(data, n);
+    free_matrix(result, n);
 
     return 0;
 }

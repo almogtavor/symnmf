@@ -22,11 +22,14 @@ def main():
         d = x_matrix.shape[1]
 
         if goal == "sym":
-            result = symnmf.sym(x_matrix.tolist())
+            result = symnmf.sym(x_matrix.tolist(), n, d)
         elif goal == "ddg":
-            result = symnmf.ddg(x_matrix.tolist())
+            a_matrix = symnmf.sym(x_matrix.tolist(), n, d)
+            result = symnmf.ddg(a_matrix, n)
         elif goal == "norm":
-            result = symnmf.norm(x_matrix.tolist())
+            a_matrix = symnmf.sym(x_matrix.tolist(), n, d)
+            d_matrix = symnmf.ddg(a_matrix, n)
+            result = symnmf.norm(x_matrix.tolist(), d_matrix, n)
         elif goal == "symnmf":
             # Initialize h_matrix (H), and get w_matrx
             a_matrix = symnmf.sym(x_matrix.tolist(), n, d)
@@ -43,7 +46,7 @@ def main():
         # Print result with 4 decimal precision
         for row in result:
             print(",".join(f"{val:.4f}" for val in row))
-    except:
+    except Exception as e:
         print("An Error Has Occurred")
         return
 

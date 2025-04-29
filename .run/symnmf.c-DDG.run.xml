@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="symnmf.c-DDG" type="CppFileRunConfiguration" factoryName="CppFileRunConfiguration" PROGRAM_PARAMS="ddg input_1.txt" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sp" TARGET_NAME="symnmf.c-DDG" CONFIG_NAME="symnmf.c-DDG">
+    <option name="compilerOptions" value="-ansi -Wall -Wextra -Werror -pedantic-errors -lm" />
+    <option name="sourceFile" value="$PROJECT_DIR$/symnmf.c" />
+    <method v="2">
+      <option name="com.jetbrains.cidr.cpp.runfile.CppFileBuildBeforeRunTaskProvider$BasicBuildBeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
+</component>
