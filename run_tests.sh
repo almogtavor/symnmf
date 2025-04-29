@@ -5,7 +5,8 @@ set -uo pipefail
 SPEED=${1:-false}
 
 SCRIPT_DIR=`dirname $0`
-SRC_DIR=${SCRIPT_DIR}/*_*_project/
+#SRC_DIR=${SCRIPT_DIR}/*_*_project/
+SRC_DIR=${SCRIPT_DIR}/
 SYMNMF_TESTS_DIR=${SCRIPT_DIR}/tests/
 KMEANS_TESTS_DIR=${SCRIPT_DIR}/kmeans_tests/
 
@@ -39,15 +40,17 @@ function assertByFile() {
 	echo -e "\nFailed command: ${command}\n"
 	echo "--- captured STDERR ---"
 	cat ${stderr_output}
-	echo "--- actual ---"
+	echo "--- actual: ---"
 	echo original: ${stdout_output}
 	echo with line numbers: ${stdout_with_line_numbers}
-	echo "--- expected ---"
+	echo "--- expected: ---"
 	echo original: ${expectedFilePath}
 	echo with line numbers: ${expected_with_line_numbers}
-	echo "--- diff ---"
+	echo "--- diff: ---"
 	echo diff: ${diff_output}
-	echo "________________"
+	echo "_______________________________________________________________________________"
+	echo
+	echo
 	echo
 	return 1
 }
