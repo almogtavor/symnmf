@@ -118,33 +118,33 @@ double **norm(double **a_matrix, double **d_matrix, int n) {
 }
 
 /* 1.4.2 Update H */
-double **update_H(double **w_matrix, double **h_matrix, int n, int k) {
-    int i;
-    int j;
-    double **WH;
-    double **H_T;
-    double **H_H_T;
-    double **H_H_T_H;
-    double **ret;
-    WH = matrix_multiply(w_matrix, h_matrix, n, n, k);
-    H_T = matrix_transpose(h_matrix, n, k);
-    H_H_T = matrix_multiply(h_matrix, H_T, n, k, n);
-    H_H_T_H = matrix_multiply(H_H_T, h_matrix, n, n, k);
-    ret = malloc(n * sizeof(double*));
-    // assert(ret!=NULL);
-    for(i = 0; i < n; i++){
-        ret[i] = malloc(k * sizeof(double));
-        // assert(ret[i]!=NULL);
-        for(j = 0; j < k; j++){
-            ret[i][j] = h_matrix[i][j] * (1 - BETA + (BETA * (WH[i][j]/H_H_T_H[i][j])));
-        }
-    }
-    free_matrix(WH, n);
-    free_matrix(H_T, k);
-    free_matrix(H_H_T, n);
-    free_matrix(H_H_T_H, n);
-    return ret;
-}
+// double **update_H(double **w_matrix, double **h_matrix, int n, int k) {
+//     int i;
+//     int j;
+//     double **WH;
+//     double **H_T;
+//     double **H_H_T;
+//     double **H_H_T_H;
+//     double **ret;
+//     WH = matrix_multiply(w_matrix, h_matrix, n, n, k);
+//     H_T = matrix_transpose(h_matrix, n, k);
+//     H_H_T = matrix_multiply(h_matrix, H_T, n, k, n);
+//     H_H_T_H = matrix_multiply(H_H_T, h_matrix, n, n, k);
+//     ret = malloc(n * sizeof(double*));
+//     // assert(ret!=NULL);
+//     for(i = 0; i < n; i++){
+//         ret[i] = malloc(k * sizeof(double));
+//         // assert(ret[i]!=NULL);
+//         for(j = 0; j < k; j++){
+//             ret[i][j] = h_matrix[i][j] * (1 - BETA + (BETA * (WH[i][j]/H_H_T_H[i][j])));
+//         }
+//     }
+//     free_matrix(WH, n);
+//     free_matrix(H_T, k);
+//     free_matrix(H_H_T, n);
+//     free_matrix(H_H_T_H, n);
+//     return ret;
+// }
 
 /* 1.4.3 Convergence Check Using Frobenius Norm */
 int has_converged(double **h_matrix, double **new_h, int n, int k) {
@@ -170,29 +170,60 @@ void print_clusters(int *clusters, int n) {
 }
 
 /* SymNMF Main Function */
+/* 1.4.2 Update H */
+double **update_H(double **w_matrix, double **h_matrix, int n, int k) {
+    int i, j, l, m;
+    double **new_h = (double **) malloc(n * sizeof(double *));
+    for (i = 0; i < n; i++) {
+        new_h[i] = (double *) malloc(k * sizeof(double));
+    }
+
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < k; j++) {
+            double WH_ij = 0.0;
+            double HHTH_ij = 0.0;
+
+            for (l = 0; l < n; l++) {
+                WH_ij += w_matrix[i][l] * h_matrix[l][j];
+            }
+
+            for (m = 0; m < k; m++) {
+                for (l = 0; l < n; l++) {
+                    HHTH_ij += h_matrix[i][m] * h_matrix[l][m] * h_matrix[l][j];
+                }
+            }
+
+            if (HHTH_ij != 0.0) {
+                new_h[i][j] = h_matrix[i][j] * (1 - BETA + BETA * WH_ij / HHTH_ij);
+            } else {
+                new_h[i][j] = h_matrix[i][j]; // fallback to original value
+            }
+        }
+    }
+
+    return new_h;
+}
+
+/* SymNMF Main Function */
 double **symnmf(double **w_matrix, double **h_matrix, int n, int k) {
     double **new_h;
-    int iter, i, j;
+    int iter;
 
     for (iter = 0; iter < MAX_ITER; iter++) {
         new_h = update_H(w_matrix, h_matrix, n, k);
 
         if (has_converged(h_matrix, new_h, n, k)) {
-            free_matrix(new_h, n);
-            break;
+            free_matrix(h_matrix, n);
+            return new_h;
         }
 
-        /* Copy new H to H for the next iteration */
-        for (i = 0; i < n; i++) {
-            for (j = 0; j < k; j++) {
-                h_matrix[i][j] = new_h[i][j];
-            }
-        }
-        /* Free the old `new_h` after copying its content */
-        free_matrix(new_h, n);
+        free_matrix(h_matrix, n);
+        h_matrix = new_h;
     }
+
     return h_matrix;
 }
+
 
 /* Function to read data points from file */
 double **read_data(const char *file_name, int *n, int *d) {
