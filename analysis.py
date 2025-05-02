@@ -10,6 +10,7 @@ from kmeans import kmeans
 MAX_ITER = 300
 EPSILON = 0.0001
 
+np.random.seed(1234)
 
 def initialize_2d_array(row, col):
     arr = [[0.0] * col for _ in range(row)]
@@ -44,34 +45,29 @@ def create_data_points(file_name):
         for line in file:
             points.append(line.strip().split(','))
     if not points:
-        print("An Error Has Occurred 543543254325325")
+        print("An Error Has Occurred")
         sys.exit(1)
     return [[float(value) for value in row] for row in points]
 
 
-
-# The function converts a list of nk elements to an array of arrays of size nk
-def list_to_mat(lst, n, k):
-    return [lst[i * k:(i + 1) * k] for i in range(n)]
-
-
 # The function performs the symnmf algorithm on k centroids, and returns silhouette score
 def calc_symnmf(k, file_name):
-    points = create_data_points(file_name)
-    np.random.seed(1234)
-    W = symnmf.norm(points)
-    n = int(math.sqrt(len(W)))
-    # w_sum = sum(W)
-    w_sum = sum(sum(row) for row in W)
-    W = list_to_mat(W, n, n)
-    upper_bound = 2.0 * math.sqrt((w_sum / (n * n)) / k)
-    H = np.random.uniform(low=0.0, high=upper_bound, size=n * k).reshape(n, k).tolist()
-    H = symnmf.symnmf(W, H)
-    H = list_to_mat(H, n, k)
-    H = np.array(H)
-    # Compute cluster for each point by the min distance from the first k points
-    clusters = [np.argmax(row) for row in H]
-    return silhouette_score(points, clusters)
+    x_matrix = create_data_points(file_name)
+    n = len(x_matrix)
+    if n == 0:
+        print("An Error Has Occurred"); sys.exit(1)
+    # compute normalized similarity (W) - this is a nxn list-of-lists
+    w_matrix = symnmf.norm(x_matrix)
+    # compute m = average of all W[i][j]
+    m = np.mean(w_matrix)
+    h_matrix = np.random.uniform(0, 2 * np.sqrt(m / k),
+                                 size=(len(x_matrix), k)).tolist()
+    # initialize H in [0, 2*sqrt(m / k)]
+    final_h_matrix = symnmf.symnmf(w_matrix, h_matrix, k)
+    # now H is a list-of-lists nxk - cluster assignments
+    labels = [int(max(range(k), key=lambda j: final_h_matrix[i][j])) for i in range(n)]
+    return silhouette_score(x_matrix, labels)
+
 
 
 def run_kmeans_silhouette(k, file_name):
@@ -94,7 +90,7 @@ def run_kmeans_silhouette(k, file_name):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("An Error Has Occurred 543542543254")
+        print("An Error Has Occurred")
         sys.exit(1)
 
     try:
@@ -102,7 +98,7 @@ if __name__ == "__main__":
         if k <= 1: # k should be larger than 1 (k > 1)
             raise ValueError
     except ValueError:
-        print("An Error Has Occurred 54325425")
+        print("An Error Has Occurred")
         sys.exit(1)
 
     input_file_name = sys.argv[2]
@@ -110,14 +106,14 @@ if __name__ == "__main__":
     try:
         points = create_data_points(input_file_name)
         if k >= len(points):
-            print("An Error Has Occurred 23232")
+            print("An Error Has Occurred")
             sys.exit(1)
 
         nmf_score = calc_symnmf(k, input_file_name)
         kmeans_score = run_kmeans_silhouette(k, input_file_name)
 
     except Exception as e:
-        print(f"An Error Has Occurred 9892, {e.__dict__}")
+        print(f"An Error Has Occurred")
         sys.exit(1)
 
     print(f"nmf: {nmf_score:.4f}")
