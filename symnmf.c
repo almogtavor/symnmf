@@ -11,24 +11,27 @@
 #define ERROR_MSG "An Error Has Occurred\n"
 #define MAX_LINE_LENGTH 10000
 
-double** sym(double** x_matrix, int n, int d);
-double** ddg(double** a_matrix, int n);
-double** norm(double** a_matrix, double** d_matrix, int n);
-double** symnmf(double** w_matrix, double** h_matrix, int n, int k);
+double **sym(double **x_matrix, int n, int d);
+
+double **ddg(double **a_matrix, int n);
+
+double **norm(double **a_matrix, double **d_matrix, int n);
+
+double **symnmf(double **w_matrix, double **h_matrix, int n, int k);
 
 double calc_distance(double *point1, double *point2, int cords_num) {
     double sum = 0;
     int i;
     for (i = 0; i < cords_num; i++) {
-        sum += (double)(point1[i] - point2[i]) * (double)(point1[i] - point2[i]);
+        sum += (double) (point1[i] - point2[i]) * (double) (point1[i] - point2[i]);
     }
     /* We don't use sqrt here since in symnmf we calculate the squared Euclidean distance */
     return sum;
 }
 
 /* The Similarity Matrix */
-double** sym(double** x_matrix, int n, int d) {
-    double** a_matrix = malloc(n * sizeof(double*));
+double **sym(double **x_matrix, int n, int d) {
+    double **a_matrix = malloc(n * sizeof(double *));
     int i, j;
     for (i = 0; i < n; i++) {
         /* Calling calloc so all entries would set to 0 when allocated */
@@ -45,8 +48,8 @@ double** sym(double** x_matrix, int n, int d) {
 }
 
 /* The Diagonal Degree Matrix Implementation */
-double** ddg(double** a_matrix, int n) {
-    double** d_matrix = malloc(n * sizeof(double*));
+double **ddg(double **a_matrix, int n) {
+    double **d_matrix = malloc(n * sizeof(double *));
     int i, j;
     double sum;
     for (i = 0; i < n; i++) {
@@ -61,8 +64,8 @@ double** ddg(double** a_matrix, int n) {
 }
 
 /* Normalized Similarity Matrix */
-double** norm(double** a_matrix, double** d_matrix, int n) {
-    double** w_matrix = malloc(n * sizeof(double*));
+double **norm(double **a_matrix, double **d_matrix, int n) {
+    double **w_matrix = malloc(n * sizeof(double *));
     int i, j;
     for (i = 0; i < n; i++) {
         w_matrix[i] = calloc(n, sizeof(double));
@@ -77,28 +80,28 @@ double** norm(double** a_matrix, double** d_matrix, int n) {
 }
 
 /* 1.4.1 Initialize H */
-double** initialize_H(int n, int k, double avg) {
-    double** h_matrix;
+double **initialize_H(int n, int k, double avg) {
+    double **h_matrix;
     int i, j;
 
-    h_matrix = (double**) malloc(n * sizeof(double*));
+    h_matrix = (double **) malloc(n * sizeof(double *));
 
     for (i = 0; i < n; i++) {
-        h_matrix[i] = (double*) malloc(k * sizeof(double));
+        h_matrix[i] = (double *) malloc(k * sizeof(double));
         for (j = 0; j < k; j++) {
             /* By ((double)rand() / RAND_MAX) I'm getting a random num at the interval [0,1] */
-            h_matrix[i][j] = ((double)rand() / RAND_MAX) * 2 * sqrt(avg / k);
+            h_matrix[i][j] = ((double) rand() / RAND_MAX) * 2 * sqrt(avg / k);
         }
     }
     return h_matrix;
 }
 
 /* 1.4.2 Update H */
-double** update_H(double** w_matrix, double** h_matrix, int n, int k) {
+double **update_H(double **w_matrix, double **h_matrix, int n, int k) {
     int i, j, l, m;
-    double** new_h = (double**) malloc(n * sizeof(double*));
+    double **new_h = (double **) malloc(n * sizeof(double *));
     for (i = 0; i < n; i++) {
-        new_h[i] = (double*) malloc(k * sizeof(double));
+        new_h[i] = (double *) malloc(k * sizeof(double));
     }
 
     for (i = 0; i < n; i++) {
@@ -124,7 +127,7 @@ double** update_H(double** w_matrix, double** h_matrix, int n, int k) {
 }
 
 /* 1.4.3 Convergence Check Using Frobenius Norm */
-int has_converged(double** h_matrix, double** new_h, int n, int k) {
+int has_converged(double **h_matrix, double **new_h, int n, int k) {
     int i, j;
     double sum_squared_diff = 0.0;
 
@@ -138,28 +141,8 @@ int has_converged(double** h_matrix, double** new_h, int n, int k) {
     return sum_squared_diff < EPSILON;
 }
 
-/* 1.5 - Hard Clustering Solution */
-int* derive_clustering(double** h_matrix, int n, int k) {
-    int* clusters;
-    int i, j;
-
-    clusters = (int*) malloc(n * sizeof(int));
-    for (i = 0; i < n; i++) {
-        double max_value = h_matrix[i][0];
-        int max_index = 0;
-        for (j = 1; j < k; j++) {
-            if (h_matrix[i][j] > max_value) {
-                max_value = h_matrix[i][j];
-                max_index = j;
-            }
-        }
-        clusters[i] = max_index;
-    }
-    return clusters;
-}
-
 /* Display clustering results */
-void print_clusters(int* clusters, int n) {
+void print_clusters(int *clusters, int n) {
     int i;
     for (i = 0; i < n; i++) {
         printf("%d\n", clusters[i] + 1);
@@ -167,7 +150,7 @@ void print_clusters(int* clusters, int n) {
 }
 
 /* Free a matrix */
-void free_matrix(double** matrix, int n) {
+void free_matrix(double **matrix, int n) {
     int i;
     for (i = 0; i < n; i++) {
         free(matrix[i]);
@@ -176,9 +159,8 @@ void free_matrix(double** matrix, int n) {
 }
 
 /* SymNMF Main Function */
-double** symnmf(double** w_matrix, double** h_matrix, int n, int k) {
-    double** new_h;
-/*    int* clusters;*/
+double **symnmf(double **w_matrix, double **h_matrix, int n, int k) {
+    double **new_h;
     int iter, i, j;
 
     for (iter = 0; iter < MAX_ITER; iter++) {
@@ -198,23 +180,16 @@ double** symnmf(double** w_matrix, double** h_matrix, int n, int k) {
         /* Free the old `new_h` after copying its content */
         free_matrix(new_h, n);
     }
-
-/*    clusters = derive_clustering(h_matrix, n, k); */
-
-/*    printf("Clustering Results:\n"); */
-/*    print_clusters(clusters, n); */
-
-/*    free(clusters); */
     return h_matrix;
 }
 
 /* Function to read data points from file */
-double** read_data(const char* file_name, int* n, int* d) {
-    FILE* file;
-    double** data;
+double **read_data(const char *file_name, int *n, int *d) {
+    FILE *file;
+    double **data;
     char line[MAX_LINE];
     int row, col, i;
-    char* token;
+    char *token;
 
     file = fopen(file_name, "r");
     if (!file) {
@@ -236,7 +211,7 @@ double** read_data(const char* file_name, int* n, int* d) {
             }
         }
 
-        data = realloc(data, (row + 1) * sizeof(double*));
+        data = realloc(data, (row + 1) * sizeof(double *));
         if (!data) {
             printf(ERROR_MSG);
             exit(1);
@@ -249,7 +224,7 @@ double** read_data(const char* file_name, int* n, int* d) {
         }
 
         /* Re-read the first tokenized line using fgets again */
-        fseek(file, 0, SEEK_SET);  /* Reset file pointer to the start */
+        fseek(file, 0, SEEK_SET); /* Reset file pointer to the start */
         for (i = 0; i <= row; i++) {
             fgets(line, MAX_LINE, file);
         }
@@ -279,7 +254,7 @@ int validate_file_format(FILE *file) {
             c != '\n' && c != '\r' &&
             c != '-') {
             return 0;
-            }
+        }
     }
     return 1;
 }
@@ -296,7 +271,7 @@ int count_dimensions(const char *line) {
     return count;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     FILE *file;
     char line[MAX_LINE_LENGTH];
     double **data = NULL, **a_matrix = NULL, **d_matrix = NULL, **result = NULL;
@@ -343,7 +318,7 @@ int main(int argc, char* argv[]) {
     fgets(line, MAX_LINE_LENGTH, file);
     d = count_dimensions(line);
 
-    data = (double **)malloc(n * sizeof(double *));
+    data = (double **) malloc(n * sizeof(double *));
     if (data == NULL) {
         fclose(file);
         printf(ERROR_MSG);
@@ -358,7 +333,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        data[i] = (double *)malloc(d * sizeof(double));
+        data[i] = (double *) malloc(d * sizeof(double));
         if (data[i] == NULL) {
             printf(ERROR_MSG);
             return 1;
@@ -379,7 +354,6 @@ int main(int argc, char* argv[]) {
 
     if (strcmp(goal, "sym") == 0) {
         result = sym(data, n, d);
-
     } else if (strcmp(goal, "ddg") == 0) {
         a_matrix = sym(data, n, d);
         result = ddg(a_matrix, n);
@@ -391,7 +365,6 @@ int main(int argc, char* argv[]) {
         result = norm(a_matrix, d_matrix, n);
         free_matrix(a_matrix, n);
         free_matrix(d_matrix, n);
-
     } else {
         printf(ERROR_MSG);
         free_matrix(data, n);
