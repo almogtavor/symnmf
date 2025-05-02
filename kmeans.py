@@ -43,15 +43,21 @@ def kmeans(k: int, iterations: int, cords_num: int, points: List[Vector], epsilo
     centroids = initialize_centroids(points, k)
     curr_i = 0
     converged = False
+    labels = [0] * len(points)
+
     while curr_i < iterations and not converged:
         clusters: list[list[Vector]] = [[] for _ in range(k)]
         previous_centroids = [centroid[:] for centroid in centroids]
+
         for i in range(len(points)):
             cluster_index = argmin(points[i], centroids)
             clusters[cluster_index].append(points[i])
+            labels[i] = cluster_index  # Save assignment
 
         for i in range(len(clusters)):
-            centroids[i] = calculate_new_centroid(clusters[i], cords_num)
+            if clusters[i]:  # Avoid division by zero
+                centroids[i] = calculate_new_centroid(clusters[i], cords_num)
+
         curr_i += 1
         for i in range(len(centroids)):
             if calc_distance(centroids[i], previous_centroids[i]) < epsilon:
@@ -59,7 +65,9 @@ def kmeans(k: int, iterations: int, cords_num: int, points: List[Vector], epsilo
             else:
                 converged = False
                 break
-    return centroids
+
+    return centroids, labels
+
 
 
 def initialize_centroids(vectors: List[Vector], k: int) -> List[Vector]:
@@ -74,7 +82,7 @@ def main():
 
     all_dots, cords_num, k, iterations, vectors_num = load_dots()
 
-    centroids = kmeans(k, iterations, cords_num, all_dots)
+    centroids, _ = kmeans(k, iterations, cords_num, all_dots)
     for i, centroid in enumerate(centroids):
         for j in range(len(centroid)):
             if (j<len(centroid)-1):

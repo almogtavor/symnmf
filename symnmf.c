@@ -271,12 +271,116 @@ int count_dimensions(const char *line) {
     return count;
 }
 
+
+/* Validate file format */
+int validate_file(FILE *file) {
+    if (file == NULL || !validate_file_format(file)) {
+        printf(ERROR_MSG);
+        if (file != NULL) fclose(file);
+        return 0;
+    }
+    return 1;
+}
+
+/* Count vectors and dimensions */
+int analyze_file(FILE *file, int *n, int *d, char *line) {
+    *n = 0;
+    while (fgets(line, MAX_LINE_LENGTH, file)) {
+        if (strlen(line) > 1) {
+            (*n)++;
+        }
+    }
+    if (*n == 0) return 0;
+    rewind(file);
+    if (!fgets(line, MAX_LINE_LENGTH, file)) return 0;
+    *d = count_dimensions(line);
+    rewind(file);
+    return 1;
+}
+
+/* Free partially allocated data matrix */
+void free_partial_data(double **data, int filled) {
+    int i;
+    if (data == NULL) return;
+    for (i = 0; i < filled; i++) {
+        if (data[i] != NULL) {
+            free(data[i]);
+        }
+    }
+    free(data);
+}
+
+/* Load data from file */
+double **load_data(FILE *file, int n, int d) {
+    double **data = malloc(n * sizeof(double *));
+    char line[MAX_LINE_LENGTH];
+    int i, j;
+    for (i = 0; i < n; i++) {
+        char *token;
+        if (!fgets(line, MAX_LINE_LENGTH, file)) {
+            free_partial_data(data, i);
+            return NULL;
+        }
+
+        data[i] = (double *) malloc(d * sizeof(double));
+        if (data[i] == NULL) {
+            free_partial_data(data, i);
+            return NULL;
+        }
+
+        token = strtok(line, ",\n");
+        for (j = 0; j < d; j++) {
+            if (token == NULL) {
+                free_partial_data(data, i + 1);
+                return NULL;
+            }
+            data[i][j] = atof(token);
+            token = strtok(NULL, ",\n");
+        }
+    }
+    return data;
+}
+
+/* Execute goal and return result matrix (caller must free) */
+double **execute_goal(const char *goal, double **data, int n, int d) {
+    double **result = NULL, **a_matrix = NULL, **d_matrix = NULL;
+
+    if (strcmp(goal, "sym") == 0) {
+        result = sym(data, n, d);
+    } else if (strcmp(goal, "ddg") == 0) {
+        a_matrix = sym(data, n, d);
+        result = ddg(a_matrix, n);
+        free_matrix(a_matrix, n);
+    } else if (strcmp(goal, "norm") == 0) {
+        a_matrix = sym(data, n, d);
+        d_matrix = ddg(a_matrix, n);
+        result = norm(a_matrix, d_matrix, n);
+        free_matrix(a_matrix, n);
+        free_matrix(d_matrix, n);
+    }
+
+    return result;
+}
+
+/* Print a matrix */
+void print_matrix(double **matrix, int n) {
+    int i, j;
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            printf("%.4f", matrix[i][j]);
+            if (j < n - 1) printf(",");
+        }
+        printf("\n");
+    }
+}
+
+
 int main(int argc, char *argv[]) {
     FILE *file;
     char line[MAX_LINE_LENGTH];
-    double **data = NULL, **a_matrix = NULL, **d_matrix = NULL, **result = NULL;
-    int i, j, n = 0, d = 0;
-    char *filename, *goal;
+    char *goal, *filename;
+    int n = 0, d = 0;
+    double **data = NULL, **result = NULL;
 
     if (argc != 3) {
         printf(ERROR_MSG);
@@ -285,103 +389,30 @@ int main(int argc, char *argv[]) {
 
     goal = argv[1];
     filename = argv[2];
-
     file = fopen(filename, "r");
-    if (file == NULL) {
-        printf(ERROR_MSG);
-        return 1;
-    }
+    if (!validate_file(file)) return 1;
 
-    /* Validate file format */
-    if (!validate_file_format(file)) {
+    if (!analyze_file(file, &n, &d, line)) {
         fclose(file);
         printf(ERROR_MSG);
         return 1;
     }
 
-    rewind(file);
-
-    /* Count lines (vectors) */
-    while (fgets(line, MAX_LINE_LENGTH, file)) {
-        if (strlen(line) > 1) {
-            n++;
-        }
-    }
-
-    if (n == 0) {
-        fclose(file);
-        printf(ERROR_MSG);
-        return 1;
-    }
-
-    rewind(file);
-    fgets(line, MAX_LINE_LENGTH, file);
-    d = count_dimensions(line);
-
-    data = (double **) malloc(n * sizeof(double *));
-    if (data == NULL) {
-        fclose(file);
-        printf(ERROR_MSG);
-        return 1;
-    }
-
-    rewind(file);
-    for (i = 0; i < n; i++) {
-        char *token;
-        if (!fgets(line, MAX_LINE_LENGTH, file)) {
-            printf(ERROR_MSG);
-            return 1;
-        }
-
-        data[i] = (double *) malloc(d * sizeof(double));
-        if (data[i] == NULL) {
-            printf(ERROR_MSG);
-            return 1;
-        }
-
-        token = strtok(line, ",\n");
-        for (j = 0; j < d; j++) {
-            if (token == NULL) {
-                printf(ERROR_MSG);
-                return 1;
-            }
-            data[i][j] = atof(token);
-            token = strtok(NULL, ",\n");
-        }
-    }
-
+    data = load_data(file, n, d);
     fclose(file);
-
-    if (strcmp(goal, "sym") == 0) {
-        result = sym(data, n, d);
-    } else if (strcmp(goal, "ddg") == 0) {
-        a_matrix = sym(data, n, d);
-        result = ddg(a_matrix, n);
-        /* Free a_matrix since it's only needed here */
-        free_matrix(a_matrix, n);
-    } else if (strcmp(goal, "norm") == 0) {
-        a_matrix = sym(data, n, d);
-        d_matrix = ddg(a_matrix, n);
-        result = norm(a_matrix, d_matrix, n);
-        free_matrix(a_matrix, n);
-        free_matrix(d_matrix, n);
-    } else {
+    if (data == NULL) {
         printf(ERROR_MSG);
+        return 1;
+    }
+    result = execute_goal(goal, data, n, d);
+    if (result == NULL) {
         free_matrix(data, n);
+        printf(ERROR_MSG);
         return 1;
     }
 
-    /* Print result matrix */
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
-            printf("%.4f", result[i][j]);
-            if (j < n - 1) printf(",");
-        }
-        printf("\n");
-    }
-
+    print_matrix(result, n);
     free_matrix(data, n);
     free_matrix(result, n);
-
     return 0;
 }

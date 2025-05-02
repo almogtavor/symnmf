@@ -18,8 +18,6 @@ def main():
             print("An Error Has Occurred")
             return
         x_matrix = np.genfromtxt(file_name, delimiter=',')
-        n = x_matrix.shape[0]
-        d = x_matrix.shape[1]
 
         if goal == "sym":
             result = symnmf.sym(x_matrix.tolist())

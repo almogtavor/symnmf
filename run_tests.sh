@@ -47,17 +47,34 @@ function assertByFile() {
 		((failures++))
 		echo -e "\n❌ Failed command: ${command}\n"
 		echo "📄 Expected Output File: ${expectedFilePath}"
-		echo "--- 🧵 captured STDERR ---"
-		cat ${stderr_output}
-		echo "--- 📦 actual STDOUT: ---"
-		cat ${stdout_output}
-		echo "--- 📐 expected STDOUT: ---"
-		cat ${expectedFilePath}
+
+		crop_print() {
+		    local label=$1 file=$2
+		    echo "${label}"
+		    local lines
+		    lines=$(wc -l < "${file}")
+		    if (( lines <= 5 )); then
+		        cat "${file}"
+		    else
+		        head -n 5 "${file}"
+		        echo "… (${lines} lines total)"
+		    fi
+		    echo
+		}
+
+		crop_print "--- 🧵 captured STDERR ---" "${stderr_output}"
+		crop_print "--- 📦 actual STDOUT: ---"    "${stdout_output}"
+		crop_print "--- 📐 expected STDOUT: ---"  "${expectedFilePath}"
+
 		echo "--- 🔍 DIFF (line-numbered): ---"
 		echo "actual:   ${stdout_with_line_numbers}"
 		echo "expected: ${expected_with_line_numbers}"
-		echo "--- 🔄 Diff result: ---"
-		cat ${diff_output}
+		echo "--- 🔄 Diff result (first 5 lines): ---"
+		head -n 5 "${diff_output}"
+		if (( $(wc -l < "${diff_output}") > 5 )); then
+		    echo "… ($(wc -l < "${diff_output}") lines total)"
+		fi
+
 		echo "_______________________________________________________________________________"
 		echo
 		echo
