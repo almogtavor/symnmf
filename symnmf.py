@@ -26,7 +26,7 @@ def main():
         elif goal == "norm":
             result = symnmf.norm(x_matrix.tolist())
         elif goal == "symnmf":
-            # Initialize h_matrix (H), and get w_matrx
+            # Initialize H (1.4.1), calculate W and run symnmf
             w_matrix = symnmf.norm(x_matrix.tolist())
             m = np.mean(w_matrix)
             h_matrix = np.random.uniform(0, 2 * np.sqrt(m / clusters_k),

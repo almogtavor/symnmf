@@ -19,6 +19,44 @@ double **norm(double **a_matrix, double **d_matrix, int n);
 
 double **symnmf(double **w_matrix, double **h_matrix, int n, int k);
 
+/* A util function to free a matrix */
+void free_matrix(double **matrix, int n) {
+    int i;
+    if (matrix == NULL) return;
+    for (i = 0; i < n; i++) {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+/* Matrix Transpose */
+double **matrix_transpose(double **A, int rows, int cols) {
+    int i, j;
+    double **T = malloc(cols * sizeof(double *));
+    for (i = 0; i < cols; i++) {
+        T[i] = malloc(rows * sizeof(double));
+        for (j = 0; j < rows; j++) {
+            T[i][j] = A[j][i];
+        }
+    }
+    return T;
+}
+
+/* Matrix Multiplication */
+double **matrix_multiply(double **A, double **B, int A_rows, int A_cols, int B_cols) {
+    int i, j, k;
+    double **C = malloc(A_rows * sizeof(double *));
+    for (i = 0; i < A_rows; i++) {
+        C[i] = calloc(B_cols, sizeof(double));
+        for (j = 0; j < B_cols; j++) {
+            for (k = 0; k < A_cols; k++) {
+                C[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+    return C;
+}
+
 double calc_distance(double *point1, double *point2, int cords_num) {
     double sum = 0;
     int i;
@@ -79,51 +117,33 @@ double **norm(double **a_matrix, double **d_matrix, int n) {
     return w_matrix;
 }
 
-/* 1.4.1 Initialize H */
-double **initialize_H(int n, int k, double avg) {
-    double **h_matrix;
-    int i, j;
-
-    h_matrix = (double **) malloc(n * sizeof(double *));
-
-    for (i = 0; i < n; i++) {
-        h_matrix[i] = (double *) malloc(k * sizeof(double));
-        for (j = 0; j < k; j++) {
-            /* By ((double)rand() / RAND_MAX) I'm getting a random num at the interval [0,1] */
-            h_matrix[i][j] = ((double) rand() / RAND_MAX) * 2 * sqrt(avg / k);
-        }
-    }
-    return h_matrix;
-}
-
 /* 1.4.2 Update H */
 double **update_H(double **w_matrix, double **h_matrix, int n, int k) {
-    int i, j, l, m;
-    double **new_h = (double **) malloc(n * sizeof(double *));
-    for (i = 0; i < n; i++) {
-        new_h[i] = (double *) malloc(k * sizeof(double));
-    }
-
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < k; j++) {
-            double WH_ij = 0.0;
-            double HHTH_ij = 0.0;
-
-            for (l = 0; l < n; l++) {
-                WH_ij += w_matrix[i][l] * h_matrix[l][j];
-            }
-
-            for (m = 0; m < k; m++) {
-                for (l = 0; l < n; l++) {
-                    /* For each i,j I compute the multiplication of the i th row of H,
-                    *  with all columns of H^T, multiplied by the j th column of H. */
-                    HHTH_ij += h_matrix[i][m] * h_matrix[l][m] * h_matrix[l][j];
-                }
-            }
-            new_h[i][j] = h_matrix[i][j] * (1 - BETA + BETA * WH_ij / HHTH_ij);
+    int i;
+    int j;
+    double **WH;
+    double **H_T;
+    double **H_H_T;
+    double **H_H_T_H;
+    double **ret;
+    WH = matrix_multiply(w_matrix, h_matrix, n, n, k);
+    H_T = matrix_transpose(h_matrix, n, k);
+    H_H_T = matrix_multiply(h_matrix, H_T, n, k, n);
+    H_H_T_H = matrix_multiply(H_H_T, h_matrix, n, n, k);
+    ret = malloc(n * sizeof(double*));
+    // assert(ret!=NULL);
+    for(i = 0; i < n; i++){
+        ret[i] = malloc(k * sizeof(double));
+        // assert(ret[i]!=NULL);
+        for(j = 0; j < k; j++){
+            ret[i][j] = h_matrix[i][j] * (1 - BETA + (BETA * (WH[i][j]/H_H_T_H[i][j])));
         }
     }
-    return new_h;
+    free_matrix(WH, n);
+    free_matrix(H_T, k);
+    free_matrix(H_H_T, n);
+    free_matrix(H_H_T_H, n);
+    return ret;
 }
 
 /* 1.4.3 Convergence Check Using Frobenius Norm */
@@ -147,15 +167,6 @@ void print_clusters(int *clusters, int n) {
     for (i = 0; i < n; i++) {
         printf("%d\n", clusters[i] + 1);
     }
-}
-
-/* Free a matrix */
-void free_matrix(double **matrix, int n) {
-    int i;
-    for (i = 0; i < n; i++) {
-        free(matrix[i]);
-    }
-    free(matrix);
 }
 
 /* SymNMF Main Function */
