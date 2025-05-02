@@ -32,27 +32,37 @@ function assertByFile() {
 	stdout_with_line_numbers=`mktemp /tmp/tmpfile.XXXXXX`
 	expected_with_line_numbers=`mktemp /tmp/tmpfile.XXXXXX`
 	diff_output=`mktemp /tmp/tmpfile.XXXXXX`
+
 	nl -v 0 ${stdout_output} > ${stdout_with_line_numbers}
 	nl -v 0 ${expectedFilePath} > ${expected_with_line_numbers}
+
 	printf "%-${FIXED_WIDTH}s %s" "${name}"
-	diff ${expected_with_line_numbers} ${stdout_with_line_numbers} > ${diff_output} && echo -e "${GREEN}passed${RESET}" && return 0 || echo -e "${RED}FAILED${RESET}"
-	((failures++))
-	echo -e "\nFailed command: ${command}\n"
-	echo "--- captured STDERR ---"
-	cat ${stderr_output}
-	echo "--- actual: ---"
-	echo original: ${stdout_output}
-	echo with line numbers: ${stdout_with_line_numbers}
-	echo "--- expected: ---"
-	echo original: ${expectedFilePath}
-	echo with line numbers: ${expected_with_line_numbers}
-	echo "--- diff: ---"
-	echo diff: ${diff_output}
-	echo "_______________________________________________________________________________"
-	echo
-	echo
-	echo
-	return 1
+
+	diff ${expected_with_line_numbers} ${stdout_with_line_numbers} > ${diff_output}
+	if [[ $? -eq 0 ]]; then
+		echo -e "${GREEN}passed${RESET}"
+		return 0
+	else
+		echo -e "${RED}FAILED${RESET}"
+		((failures++))
+		echo -e "\n❌ Failed command: ${command}\n"
+		echo "📄 Expected Output File: ${expectedFilePath}"
+		echo "--- 🧵 captured STDERR ---"
+		cat ${stderr_output}
+		echo "--- 📦 actual STDOUT: ---"
+		cat ${stdout_output}
+		echo "--- 📐 expected STDOUT: ---"
+		cat ${expectedFilePath}
+		echo "--- 🔍 DIFF (line-numbered): ---"
+		echo "actual:   ${stdout_with_line_numbers}"
+		echo "expected: ${expected_with_line_numbers}"
+		echo "--- 🔄 Diff result: ---"
+		cat ${diff_output}
+		echo "_______________________________________________________________________________"
+		echo
+		echo
+		return 1
+	fi
 }
 
 function testSymnmfSingleGoal() {

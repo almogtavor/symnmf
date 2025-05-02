@@ -7,7 +7,7 @@ def main():
         np.random.seed(1234)
 
         if len(sys.argv) != 4:
-            print("An Error Has Occurred")
+            print("An Error Has Occurred 5441111")
             return
 
         clusters_k = int(sys.argv[1])
@@ -15,7 +15,7 @@ def main():
         file_name = sys.argv[3]
 
         if file_name[-4:] != ".txt":
-            print("An Error Has Occurred")
+            print("An Error Has Occurred 54354353333")
             return
         x_matrix = np.genfromtxt(file_name, delimiter=',')
         n = x_matrix.shape[0]
@@ -35,7 +35,7 @@ def main():
                                          size=(x_matrix.shape[0], clusters_k))
             result = symnmf.symnmf(w_matrix, h_matrix.tolist(), clusters_k)
         else:
-            print("An Error Has Occurred")
+            print("An Error Has Occurred 543254325243544444")
             return
 
         # Print result with 4 decimal precision
