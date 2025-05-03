@@ -19,6 +19,12 @@ double **norm(double **a_matrix, double **d_matrix, int n);
 
 double **symnmf(double **w_matrix, double **h_matrix, int n, int k);
 
+
+double **handle_exception(void) {
+    printf(ERROR_MSG);
+    exit(1);
+}
+
 /* A util function to free a matrix */
 void free_matrix(double **matrix, int n) {
     int i;
@@ -72,7 +78,6 @@ double **sym(double **x_matrix, int n, int d) {
     double **a_matrix = malloc(n * sizeof(double *));
     int i, j;
     for (i = 0; i < n; i++) {
-        /* Calling calloc so all entries would set to 0 when allocated */
         a_matrix[i] = calloc(n, sizeof(double));
         for (j = 0; j < n; j++) {
             if (i != j) {
@@ -126,17 +131,23 @@ double **update_H(double **w_matrix, double **h_matrix, int n, int k) {
     double **H_H_T;
     double **H_H_T_H;
     double **ret;
+
     WH = matrix_multiply(w_matrix, h_matrix, n, n, k);
     H_T = matrix_transpose(h_matrix, n, k);
     H_H_T = matrix_multiply(h_matrix, H_T, n, k, n);
     H_H_T_H = matrix_multiply(H_H_T, h_matrix, n, n, k);
-    ret = malloc(n * sizeof(double*));
-    /* assert(ret!=NULL); */
-    for(i = 0; i < n; i++){
+    ret = malloc(n * sizeof(double *));
+
+    if (ret != NULL) {
+        handle_exception();
+    }
+    for (i = 0; i < n; i++) {
         ret[i] = malloc(k * sizeof(double));
-        /* assert(ret[i]!=NULL); */
-        for(j = 0; j < k; j++){
-            ret[i][j] = h_matrix[i][j] * (1 - BETA + (BETA * (WH[i][j]/H_H_T_H[i][j])));
+        if (ret[i] != NULL) {
+            handle_exception();
+        }
+        for (j = 0; j < k; j++) {
+            ret[i][j] = h_matrix[i][j] * (1 - BETA + (BETA * (WH[i][j] / H_H_T_H[i][j])));
         }
     }
     free_matrix(WH, n);
@@ -189,7 +200,6 @@ double **symnmf(double **w_matrix, double **h_matrix, int n, int k) {
     return h_matrix;
 }
 
-
 /* Function to read data points from file */
 double **read_data(const char *file_name, int *n, int *d) {
     FILE *file;
@@ -200,8 +210,7 @@ double **read_data(const char *file_name, int *n, int *d) {
 
     file = fopen(file_name, "r");
     if (!file) {
-        printf(ERROR_MSG);
-        exit(1);
+        handle_exception();
     }
 
     data = NULL;
@@ -220,14 +229,12 @@ double **read_data(const char *file_name, int *n, int *d) {
 
         data = realloc(data, (row + 1) * sizeof(double *));
         if (!data) {
-            printf(ERROR_MSG);
-            exit(1);
+            handle_exception();
         }
 
         data[row] = malloc((*d) * sizeof(double));
         if (!data[row]) {
-            printf(ERROR_MSG);
-            exit(1);
+            handle_exception();
         }
 
         /* Re-read the first tokenized line using fgets again */
