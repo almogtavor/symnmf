@@ -45,7 +45,16 @@ void free_carray(double** c_array, int rows) {
     free(c_array);
 }
 
-/* sym(X) */
+/**
+ * sym(X) wrapper
+ *
+ * Computes the similarity matrix for input X using the sym function.
+ * Called from Python with a list of lists.
+ *
+ * @param self Unused
+ * @param args Python tuple containing one argument: the input matrix
+ * @return Python list of lists representing the similarity matrix
+ */
 static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
     PyObject* x_matrix_list;
     double** x_matrix;
@@ -63,7 +72,6 @@ static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_ValueError, "Empty matrix");
         return NULL;
     }
-
     d = PyList_Size(PyList_GetItem(x_matrix_list, 0));
 
     x_matrix = pylist_to_carray(x_matrix_list, n, d);
@@ -75,7 +83,15 @@ static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-/* ddg(X) */
+/**
+ * ddg(X) wrapper
+ *
+ * Computes the Diagonal Degree matrix for input X using sym and ddg.
+ *
+ * @param self Unused
+ * @param args Python tuple with one list-of-lists input
+ * @return Python list of lists representing the Diagonal Degree matrix
+ */
 static PyObject* ddg_wrapper(PyObject* self, PyObject* args) {
     PyObject* x_matrix_list;
     double** a_matrix;
@@ -90,7 +106,6 @@ static PyObject* ddg_wrapper(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for ddg");
         return NULL;
     }
-
     n = PyList_Size(x_matrix_list);
     d = PyList_Size(PyList_GetItem(x_matrix_list, 0));
     x_matrix = pylist_to_carray(x_matrix_list, n, d);
@@ -104,7 +119,15 @@ static PyObject* ddg_wrapper(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-/* norm(X) */
+/**
+ * norm(X) wrapper
+ *
+ * Computes the normalized similarity matrix for input X using sym, ddg, and norm.
+ *
+ * @param self Unused
+ * @param args Python tuple with one list-of-lists input
+ * @return Python list of lists representing the normalized matrix
+ */
 static PyObject* norm_wrapper(PyObject* self, PyObject* args) {
     PyObject* x_matrix_list;
     double** x_matrix;
@@ -120,10 +143,8 @@ static PyObject* norm_wrapper(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for norm");
         return NULL;
     }
-
     n = PyList_Size(x_matrix_list);
     d = PyList_Size(PyList_GetItem(x_matrix_list, 0));
-
     x_matrix = pylist_to_carray(x_matrix_list, n, d);
     a_matrix = sym(x_matrix, n, d);
     d_matrix = ddg(a_matrix, n);
@@ -137,7 +158,15 @@ static PyObject* norm_wrapper(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-/* symnmf(W, H, k) */
+/**
+ * symnmf(W, H, k) wrapper
+ *
+ * Runs the SymNMF algorithm using W (n x n) and H (n x k) as input.
+ *
+ * @param self Unused
+ * @param args Python tuple: (W matrix, H matrix, k)
+ * @return Python list of lists with the resulting H matrix
+ */
 static PyObject* symnmf_wrapper(PyObject* self, PyObject* args) {
     PyObject *w_matrix_list, *h_matrix_list;
     double** w_matrix;
@@ -167,10 +196,14 @@ static PyObject* symnmf_wrapper(PyObject* self, PyObject* args) {
 
 /* Module method table */
 static PyMethodDef SymNMFMethods[] = {
-    {"sym", sym_wrapper, METH_VARARGS, "Compute the Similarity Matrix"},
-    {"ddg", ddg_wrapper, METH_VARARGS, "Compute the Diagonal Degree Matrix"},
-    {"norm", norm_wrapper, METH_VARARGS, "Compute the Normalized Similarity Matrix"},
-    {"symnmf", symnmf_wrapper, METH_VARARGS, "Run the SymNMF algorithm"},
+    {"sym", sym_wrapper, METH_VARARGS,
+     "Generate a similarity matrix from the input data."},
+    {"ddg", ddg_wrapper, METH_VARARGS,
+     "Generate a diagonal degree matrix based on the input data."},
+    {"norm", norm_wrapper, METH_VARARGS,
+     "Generate a normalized similarity matrix from the input data."},
+    {"symnmf", symnmf_wrapper, METH_VARARGS,
+     "Run the Symmetric Nonnegative Matrix Factorization algorithm."},
     {NULL, NULL, 0, NULL}
 };
 
