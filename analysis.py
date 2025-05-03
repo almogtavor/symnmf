@@ -43,7 +43,7 @@ def calc_symnmf(k, file_name):
 def run_kmeans_silhouette(k, file_name):
     points = create_data_points(file_name)
     dim = len(points[0])
-    _, labels = kmeans(k, MAX_ITER, dim, points)
+    labels = kmeans(k, MAX_ITER, dim, points)
     return silhouette_score(points, labels)
 
 
