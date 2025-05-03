@@ -8,21 +8,18 @@ def main():
         np.random.seed(1234)
 
         if len(sys.argv) != 4:
-            print("An Error Has Occurred")
-            return
+            raise ValueError
 
         clusters_k = int(sys.argv[1])
         goal = sys.argv[2]
         file_name = sys.argv[3]
 
-        if file_name[-4:] != ".txt":
-            print("An Error Has Occurred")
-            return
-        if os.path.getsize(file_name) == 0:
-            raise ValueError("Empty input file")
+        if clusters_k <= 1 or file_name[-4:] != ".txt" or os.path.getsize(file_name) == 0:
+            raise ValueError
         x_matrix = np.genfromtxt(file_name, delimiter=',')
-        if x_matrix.size == 0 or np.isnan(x_matrix).any():
-            raise ValueError("File must contain only valid float values")
+        # File must contain only valid float values, and k<n
+        if x_matrix.size == 0 or np.isnan(x_matrix).any() or clusters_k >= x_matrix.shape[0]:
+            raise ValueError
         if goal == "sym":
             result = symnmf.sym(x_matrix.tolist())
         elif goal == "ddg":
