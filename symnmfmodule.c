@@ -52,6 +52,7 @@ static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
     double** result;
     PyObject* py_result;
     int n, d;
+    (void)self;
 
     if (!PyArg_ParseTuple(args, "O", &x_matrix_list)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for sym");
@@ -84,6 +85,7 @@ static PyObject* ddg_wrapper(PyObject* self, PyObject* args) {
     PyObject* py_result;
     int n;
     int d;
+    (void)self;
 
     if (!PyArg_ParseTuple(args, "O", &x_matrix_list)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for ddg");
@@ -114,6 +116,7 @@ static PyObject* norm_wrapper(PyObject* self, PyObject* args) {
     PyObject* py_result;
     int n;
     int d;
+    (void)self;
 
     if (!PyArg_ParseTuple(args, "O", &x_matrix_list)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for norm");
@@ -144,6 +147,7 @@ static PyObject* symnmf_wrapper(PyObject* self, PyObject* args) {
     double** result;
     PyObject* py_result;
     int n, k;
+    (void)self;
 
     if (!PyArg_ParseTuple(args, "OOi", &w_matrix_list, &h_matrix_list, &k)) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for symnmf");
@@ -179,7 +183,10 @@ static struct PyModuleDef symnmfmodule = {
     "Python interface for the SymNMF algorithm",
     -1,
     SymNMFMethods,
-    NULL  /* Prevents the 'missing initializer' error */
+    NULL,  /* Prevents the 'missing initializer' error */
+    NULL,
+    NULL,
+    NULL
 };
 
 /* Module initialization function */
