@@ -158,7 +158,8 @@ static PyObject* symnmf_wrapper(PyObject* self, PyObject* args) {
     py_result = carray_to_pylist(result, n, k);
 
     free_carray(w_matrix, n);
-    free_carray(h_matrix, n);
+    /* h_matrix is already freed internally at symnmf */
+    free_carray(result, n);
     return py_result;
 }
 
