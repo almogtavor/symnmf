@@ -4,7 +4,8 @@ module = Extension(
     "symnmf",
     sources=[
         'symnmfmodule.c',
-        'symnmf.c'
+        'symnmf.c',
+        'utils.c'
     ],
     extra_compile_args=['-Wall', '-Wextra', '-Werror', '-pedantic-errors']
 )
