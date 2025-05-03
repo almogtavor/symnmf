@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy as np
 import symnmf
@@ -17,8 +18,11 @@ def main():
         if file_name[-4:] != ".txt":
             print("An Error Has Occurred")
             return
+        if os.path.getsize(file_name) == 0:
+            raise ValueError("Empty input file")
         x_matrix = np.genfromtxt(file_name, delimiter=',')
-
+        if x_matrix.size == 0 or np.isnan(x_matrix).any():
+            raise ValueError("File must contain only valid float values")
         if goal == "sym":
             result = symnmf.sym(x_matrix.tolist())
         elif goal == "ddg":
