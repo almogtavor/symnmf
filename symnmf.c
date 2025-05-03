@@ -6,6 +6,7 @@
 #include "utils.h"
 
 #define EPSILON 1e-4
+#define ZERO_DIVISION_PROTECTOR_EPSILON 1e-6
 #define MAX_ITER 300
 #define BETA 0.5
 
@@ -78,7 +79,8 @@ double **update_H(double **w_matrix, double **h_matrix, int n, int k) {
     ret = allocate_matrix(n, k);
     for (i = 0; i < n; i++) {
         for (j = 0; j < k; j++) {
-            ret[i][j] = h_matrix[i][j] * (1 - BETA + (BETA * (WH[i][j] / H_H_T_H[i][j])));
+            ret[i][j] = h_matrix[i][j] *
+                        (1 - BETA + (BETA * (WH[i][j] / H_H_T_H[i][j] + ZERO_DIVISION_PROTECTOR_EPSILON)));
         }
     }
 

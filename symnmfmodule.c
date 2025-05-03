@@ -58,7 +58,6 @@ static PyObject* sym_wrapper(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_ValueError, "Invalid arguments for sym");
         return NULL;
     }
-
     n = PyList_Size(x_matrix_list);
     if (n == 0) {
         PyErr_SetString(PyExc_ValueError, "Empty matrix");
@@ -94,7 +93,6 @@ static PyObject* ddg_wrapper(PyObject* self, PyObject* args) {
 
     n = PyList_Size(x_matrix_list);
     d = PyList_Size(PyList_GetItem(x_matrix_list, 0));
-
     x_matrix = pylist_to_carray(x_matrix_list, n, d);
     a_matrix = sym(x_matrix, n, d);
     result = ddg(a_matrix, n);
@@ -183,7 +181,8 @@ static struct PyModuleDef symnmfmodule = {
     "Python interface for the SymNMF algorithm",
     -1,
     SymNMFMethods,
-    NULL,  /* Prevents the 'missing initializer' error */
+    /* Prevents the 'missing initializer' error */
+    NULL,
     NULL,
     NULL,
     NULL
