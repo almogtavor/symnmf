@@ -6,6 +6,7 @@ module = Extension(
         'symnmfmodule.c',
         'symnmf.c'
     ],
+    extra_compile_args=['-Wall', '-Wextra', '-Werror', '-pedantic-errors']
 )
 
 setup(

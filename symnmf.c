@@ -25,6 +25,14 @@ double **handle_exception(void) {
     exit(1);
 }
 
+static void *safe_malloc(const size_t n) {
+    void *p = malloc(n);
+    if (!p) {
+        handle_exception();
+    }
+    return p;
+}
+
 /* A util function to free a matrix */
 void free_matrix(double **matrix, int n) {
     int i;
@@ -38,9 +46,9 @@ void free_matrix(double **matrix, int n) {
 /* Matrix Transpose */
 double **matrix_transpose(double **A, int rows, int cols) {
     int i, j;
-    double **T = malloc(cols * sizeof(double *));
+    double **T = safe_malloc(cols * sizeof(double *));
     for (i = 0; i < cols; i++) {
-        T[i] = malloc(rows * sizeof(double));
+        T[i] = safe_malloc(rows * sizeof(double));
         for (j = 0; j < rows; j++) {
             T[i][j] = A[j][i];
         }
@@ -51,7 +59,7 @@ double **matrix_transpose(double **A, int rows, int cols) {
 /* Matrix Multiplication */
 double **matrix_multiply(double **A, double **B, int A_rows, int A_cols, int B_cols) {
     int i, j, k;
-    double **C = malloc(A_rows * sizeof(double *));
+    double **C = safe_malloc(A_rows * sizeof(double *));
     for (i = 0; i < A_rows; i++) {
         C[i] = calloc(B_cols, sizeof(double));
         for (j = 0; j < B_cols; j++) {
@@ -67,7 +75,7 @@ double calc_distance(double *point1, double *point2, int cords_num) {
     double sum = 0;
     int i;
     for (i = 0; i < cords_num; i++) {
-        sum += (double) (point1[i] - point2[i]) * (double) (point1[i] - point2[i]);
+        sum += (point1[i] - point2[i]) * (point1[i] - point2[i]);
     }
     /* We don't use sqrt here since in symnmf we calculate the squared Euclidean distance */
     return sum;
@@ -75,7 +83,7 @@ double calc_distance(double *point1, double *point2, int cords_num) {
 
 /* The Similarity Matrix */
 double **sym(double **x_matrix, int n, int d) {
-    double **a_matrix = malloc(n * sizeof(double *));
+    double **a_matrix = safe_malloc(n * sizeof(double *));
     int i, j;
     for (i = 0; i < n; i++) {
         a_matrix[i] = calloc(n, sizeof(double));
@@ -92,7 +100,7 @@ double **sym(double **x_matrix, int n, int d) {
 
 /* The Diagonal Degree Matrix Implementation */
 double **ddg(double **a_matrix, int n) {
-    double **d_matrix = malloc(n * sizeof(double *));
+    double **d_matrix = safe_malloc(n * sizeof(double *));
     int i, j;
     double sum;
     for (i = 0; i < n; i++) {
@@ -108,7 +116,7 @@ double **ddg(double **a_matrix, int n) {
 
 /* Normalized Similarity Matrix */
 double **norm(double **a_matrix, double **d_matrix, int n) {
-    double **w_matrix = malloc(n * sizeof(double *));
+    double **w_matrix = safe_malloc(n * sizeof(double *));
     int i, j;
     for (i = 0; i < n; i++) {
         w_matrix[i] = calloc(n, sizeof(double));
@@ -136,16 +144,10 @@ double **update_H(double **w_matrix, double **h_matrix, int n, int k) {
     H_T = matrix_transpose(h_matrix, n, k);
     H_H_T = matrix_multiply(h_matrix, H_T, n, k, n);
     H_H_T_H = matrix_multiply(H_H_T, h_matrix, n, n, k);
-    ret = malloc(n * sizeof(double *));
+    ret = safe_malloc(n * sizeof(double *));
 
-    if (ret != NULL) {
-        handle_exception();
-    }
     for (i = 0; i < n; i++) {
-        ret[i] = malloc(k * sizeof(double));
-        if (ret[i] != NULL) {
-            handle_exception();
-        }
+        ret[i] = safe_malloc(k * sizeof(double));
         for (j = 0; j < k; j++) {
             ret[i][j] = h_matrix[i][j] * (1 - BETA + (BETA * (WH[i][j] / H_H_T_H[i][j])));
         }
@@ -232,7 +234,7 @@ double **read_data(const char *file_name, int *n, int *d) {
             handle_exception();
         }
 
-        data[row] = malloc((*d) * sizeof(double));
+        data[row] = safe_malloc((*d) * sizeof(double));
         if (!data[row]) {
             handle_exception();
         }
@@ -327,7 +329,7 @@ void free_partial_data(double **data, int filled) {
 
 /* Load data from file */
 double **load_data(FILE *file, int n, int d) {
-    double **data = malloc(n * sizeof(double *));
+    double **data = safe_malloc(n * sizeof(double *));
     char line[MAX_LINE_LENGTH];
     int i, j;
     for (i = 0; i < n; i++) {
@@ -337,7 +339,7 @@ double **load_data(FILE *file, int n, int d) {
             return NULL;
         }
 
-        data[i] = (double *) malloc(d * sizeof(double));
+        data[i] = (double *) safe_malloc(d * sizeof(double));
         if (data[i] == NULL) {
             free_partial_data(data, i);
             return NULL;
