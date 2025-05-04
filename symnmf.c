@@ -79,8 +79,11 @@ double **update_H(double **w_matrix, double **h_matrix, int n, int k) {
     ret = allocate_matrix(n, k);
     for (i = 0; i < n; i++) {
         for (j = 0; j < k; j++) {
+            if (H_H_T_H[i][j] == 0.0) {
+                H_H_T_H[i][j] += ZERO_DIVISION_PROTECTOR_EPSILON;
+            }
             ret[i][j] = h_matrix[i][j] *
-                        (1 - BETA + (BETA * (WH[i][j] / H_H_T_H[i][j] + ZERO_DIVISION_PROTECTOR_EPSILON)));
+                        (1 - BETA + (BETA * (WH[i][j] / H_H_T_H[i][j])));
         }
     }
 
