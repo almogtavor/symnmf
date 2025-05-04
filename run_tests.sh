@@ -136,6 +136,9 @@ function testKmeans() {
 
 function symnmfSuite() {
 	echo ">>> SymNMF <<<"
+	# Test valid integer k (should pass)
+	testSymnmfGaolsWithK 1 1_k292 292.0 k-float-but-integer
+	testSymnmfGaolsWithK 1 general_error 292.5 k-float
 
 	if [[ "${SPEED}" == *"edge"* ]]; then
 		testSymnmfAllGoals "not-existing" general_error  # Not existing file

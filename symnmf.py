@@ -31,8 +31,9 @@ def main():
     try:
         if len(sys.argv) != 4:
             raise ValueError
-
-        clusters_k = int(sys.argv[1])
+        if not float(sys.argv[1]).is_integer():
+            raise ValueError
+        clusters_k = int(float(sys.argv[1]))
         goal = sys.argv[2]
         file_name = sys.argv[3]
 

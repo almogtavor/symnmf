@@ -51,7 +51,9 @@ if __name__ == "__main__":
     try:
         if len(sys.argv) != 3:
             raise ValueError
-        k = int(sys.argv[1])
+        if not float(sys.argv[1]).is_integer():
+            raise ValueError
+        k = int(float(sys.argv[1]))
         if k <= 1:  # k should be larger than 1 (k > 1)
             raise ValueError
 
