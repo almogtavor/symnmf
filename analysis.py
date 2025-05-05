@@ -6,11 +6,7 @@ from sklearn.metrics import silhouette_score
 import symnmf
 from kmeans import kmeans
 
-MAX_ITER = 300
-EPSILON = 0.0001
-
 np.random.seed(1234)
-
 
 def create_data_points(file_name):
     points = []
@@ -43,7 +39,7 @@ def calc_symnmf(k, file_name):
 def run_kmeans_silhouette(k, file_name):
     points = create_data_points(file_name)
     dim = len(points[0])
-    labels = kmeans(k, MAX_ITER, dim, points)
+    labels = kmeans(k, dim, points)
     return silhouette_score(points, labels)
 
 

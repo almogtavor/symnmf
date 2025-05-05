@@ -3,8 +3,8 @@ import sys
 from typing import List
 
 Vector = List[float]
-DEF_EPSILON = 0.001
-DEF_ITERATION = 200
+MAX_ITER = 300
+EPSILON = 0.0001
 
 
 def is_positive_integer(value):
@@ -39,13 +39,13 @@ def calculate_new_centroid(cluster: list[Vector], cords_num: int) -> Vector:
     return new_cent
 
 
-def kmeans(k: int, iterations: int, cords_num: int, points: List[Vector], epsilon: float = DEF_EPSILON):
+def kmeans(k: int, cords_num: int, points: List[Vector], epsilon: float = EPSILON):
     centroids = initialize_centroids(points, k)
     curr_i = 0
     converged = False
     labels = [0] * len(points)
 
-    while curr_i < iterations and not converged:
+    while curr_i < MAX_ITER and not converged:
         clusters: list[list[Vector]] = [[] for _ in range(k)]
         previous_centroids = [centroid[:] for centroid in centroids]
 
